@@ -4,4 +4,6 @@ Planned features:
 - Distinguish already nudified images
 - Seek new threads
 - Method to account for image cropping
-- CLI/Web interface to search database 
+- CLI/Web interface to search database
+- Make code legible for humans
+- setup.py file
