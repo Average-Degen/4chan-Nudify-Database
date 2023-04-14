@@ -1,5 +1,9 @@
 # 4chan-Nudify-Database
 
+Requiremed files in base dir:
+- "ImageDatabase" folder
+- "hashes.txt" file
+
 Planned features:
 - Distinguish already nudified images
 - Seek new threads
