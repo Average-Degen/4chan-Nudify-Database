@@ -15,6 +15,7 @@ import os
 import re
 
 tprint("PROGRAM     LOADED")
+print("**DO NOT CLOSE PROGRAM UNTIL TOLD SO**")
 
 def CheckAllHashes():
     file_list = [f for f in listdir(
@@ -55,10 +56,6 @@ def DownloadImage(url, name):
     with open(f'{name}', 'wb') as f:
         f.write(img_data)
     AddCheckedURLs(url)
-
-def AddCheckedURLs(url):
-    with open("CheckedURLs.txt", "a") as f:
-        f.write(url + "\n")
 
 def FindNewThread():
     full_thread = ""
@@ -241,4 +238,10 @@ while True:
     if thread_url == "":
         continue
     print("Accessing thread: " + thread_url)
+    
     FindReferences(thread_url)
+    
+    print("Looped over thread once")
+    print("Sleeping for 30 seconds")
+    print("Program can be safely closed if desired")
+    time.sleep(30)
