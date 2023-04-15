@@ -89,7 +89,7 @@ def FindNewThread():
         return new_thread
     else:
         print("No nudify thread found")
-        print("Sleeping for 1 minute")
+        print("Sleeping for 60 seconds")
         time.sleep(60)
         return ""
 
@@ -212,6 +212,9 @@ def FindReferences(url):
                             if  similarity >=50:
                                 shutil.copy(path + ".jpg", f"ImageDatabase\\{path}.jpg")
                                 shutil.copy(path + "_NUDE.jpg", f"ImageDatabase\\{path}_NUDE.jpg")
+                                
+                                print("Image pair added to database!")
+                                
                                 # print(similarity)
                                 # print(ref.replace("#p", ""))
                                 # print("https:" + img_url) # original
@@ -239,13 +242,14 @@ open("CheckedURLs.txt", "w")
 
 while True:
     thread_url = FindNewThread()
-    if thread_url == "":
+    if "!DOCTYPE" in thread_url:
         continue
     print("Accessing thread: " + thread_url)
     
     FindReferences(thread_url)
     
     print("Looped over thread once")
-    print("Sleeping for 30 seconds")
+    print("Sleeping for 60 seconds")
     print("Program can be safely closed if desired")
-    time.sleep(30)
+    print("---------------------------------------------------------------")
+    time.sleep(60)
