@@ -186,45 +186,48 @@ def FindReferences(url):
                         img_url = post.find("a", class_="fileThumb")["href"]
                 except:
                     pass   
-            
-            if not "https:" + img_url in prev_urls and not "https:" + img in prev_urls:
-                try:
-                    # download requested image
-                    DownloadImage(
-                        url = "https:" + img_url,
-                        name = ref.replace("#p", "") + ".jpg"
-                    )
-                    
-                    # download nudified version
-                    DownloadImage(
-                        url = "https:" + img,
-                        name = ref.replace("#p", "") + "_NUDE.jpg"
+            try:
+                if not "https:" + img_url in prev_urls and not "https:" + img in prev_urls:
+                    try:
+                        # download requested image
+                        DownloadImage(
+                            url = "https:" + img_url,
+                            name = ref.replace("#p", "") + ".jpg"
                         )
-                    
-                    path = ref.replace("#p", "")
+                        
+                        # download nudified version
+                        DownloadImage(
+                            url = "https:" + img,
+                            name = ref.replace("#p", "") + "_NUDE.jpg"
+                            )
+                        
+                        path = ref.replace("#p", "")
 
-                    nudify_is_new = CompareHashes(GetHash(path + "_NUDE.jpg"), path + "_NUDE.jpg")
-                    
-                    if nudify_is_new:
-                        # if images are related
-                        similarity = DetectSimilar(ref.replace("#p", ""))
-                        if  similarity >=50:
-                            shutil.copy(path + ".jpg", f"ImageDatabase\\{path}.jpg")
-                            shutil.copy(path + "_NUDE.jpg", f"ImageDatabase\\{path}_NUDE.jpg")
-                            # print(similarity)
-                            # print(ref.replace("#p", ""))
-                            # print("https:" + img_url) # original
-                            # print("https:" + img) # nudified
-                            # print("-------------------------------------------------")
-                        else:
-                            # print("Removed: " + ref.replace("#p", "") + ".jpg")
-                            # print("-------------------------------------------------")
-                            pass
-                    os.remove(ref.replace("#p", "") + ".jpg")
-                    os.remove(ref.replace("#p", "") + "_NUDE.jpg")
-                except:
-                    # one of them didnt have an image and I'm lazy
-                    pass
+                        nudify_is_new = CompareHashes(GetHash(path + "_NUDE.jpg"), path + "_NUDE.jpg")
+                        
+                        if nudify_is_new:
+                            # if images are related
+                            similarity = DetectSimilar(ref.replace("#p", ""))
+                            if  similarity >=50:
+                                shutil.copy(path + ".jpg", f"ImageDatabase\\{path}.jpg")
+                                shutil.copy(path + "_NUDE.jpg", f"ImageDatabase\\{path}_NUDE.jpg")
+                                # print(similarity)
+                                # print(ref.replace("#p", ""))
+                                # print("https:" + img_url) # original
+                                # print("https:" + img) # nudified
+                                # print("-------------------------------------------------")
+                            else:
+                                # print("Removed: " + ref.replace("#p", "") + ".jpg")
+                                # print("-------------------------------------------------")
+                                pass
+                        os.remove(ref.replace("#p", "") + ".jpg")
+                        os.remove(ref.replace("#p", "") + "_NUDE.jpg")
+                    except:
+                        # one of them didnt have an image and I'm lazy
+                        pass
+            except:
+                # the amount of nested loops/error handlers is getting scary now
+                pass
             
         
 images_path = "ImageDatabase\\"
