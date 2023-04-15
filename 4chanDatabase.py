@@ -57,6 +57,10 @@ def DownloadImage(url, name):
         f.write(img_data)
     AddCheckedURLs(url)
 
+def AddCheckedURLs(url):
+    with open("CheckedURLs.txt", "a") as f:
+        f.write(url + "\n")
+
 def FindNewThread():
     full_thread = ""
     new_thread = ""
