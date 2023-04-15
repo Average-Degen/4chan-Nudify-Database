@@ -1,17 +1,16 @@
-from selenium.webdriver.edge.service import Service as EdgeService
-from selenium.webdriver.edge.options import Options as EdgeOptions
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-from bs4 import BeautifulSoup
+from urllib.request import urlopen, Request
 from os.path import isfile, join
+from bs4 import BeautifulSoup
 from os import listdir
+from lxml import etree
 import requests
 import hashlib
 import string
 import random
 import shutil
+import time
 import os
+import re
 
 
 def CheckAllHashes():
@@ -99,10 +98,45 @@ def AddCheckedURLs(url):
     with open("CheckedURLs.txt", "a") as f:
         f.write(url + "\n")
 
+def FindNewThread():
+    full_thread = ""
+    new_thread = ""
+    
+    source = requests.get("https://boards.4chan.org/b/catalog")
+    split_source = source.text.split("},")
+    for x in split_source:
+        if "nudify" in x.lower():
+            thread_index = split_source.index(x)    
+            id_index = split_source[thread_index -1]
+            id = id_index.split(":")[0]
+            id = id.replace('"', "")
+            new_url = f"https://boards.4chan.org/b/thread/{id}"
+            
+            img_count = re.search('"i":(.*)', id_index)
+            if int(img_count.group(1).split(",")[0]) >= 150:
+                full_thread = new_url
+            else:
+                new_thread = new_url
+    if new_thread == "" and full_thread != "":
+        return full_thread
+    elif new_thread != "":
+        return new_thread
+    else:
+        print("No nudify thread found")
+        print("Sleeping for 1 minute")
+        time.sleep(60)
+        return ""
+    
 images_path = "ImageDatabase\\"
 hash_file = "hashes.txt"
+has_URL = False
 
 open("CheckedURLs.txt", "w")
 
+# find URL of start thread
+thread_url = FindNewThread()
 while True:
-    ImagesFromThread("https://boards.4chan.org/b/thread/897572781#p897572781")
+    thread_url = FindNewThread()
+    if thread_url == "":
+        continue
+    ImagesFromThread(thread_url)
