@@ -1,0 +1,6 @@
+scikit-image
+bs4
+art
+requests
+opencv-python
+numpy
