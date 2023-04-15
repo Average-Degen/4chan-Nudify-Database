@@ -106,17 +106,20 @@ def FindNewThread():
     split_source = source.text.split("},")
     for x in split_source:
         if "nudify" in x.lower():
+            # get url of thread/s
             thread_index = split_source.index(x)    
             id_index = split_source[thread_index -1]
             id = id_index.split(":")[0]
             id = id.replace('"', "")
             new_url = f"https://boards.4chan.org/b/thread/{id}"
             
+            # check image count in thread
             img_count = re.search('"i":(.*)', id_index)
             if int(img_count.group(1).split(",")[0]) >= 150:
                 full_thread = new_url
             else:
                 new_thread = new_url
+    # check which thread to return
     if new_thread == "" and full_thread != "":
         return full_thread
     elif new_thread != "":
@@ -133,8 +136,6 @@ has_URL = False
 
 open("CheckedURLs.txt", "w")
 
-# find URL of start thread
-thread_url = FindNewThread()
 while True:
     thread_url = FindNewThread()
     if thread_url == "":
