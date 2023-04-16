@@ -2,7 +2,9 @@ from skimage.metrics import structural_similarity
 from os.path import isfile, join
 from bs4 import BeautifulSoup
 from os import listdir
+from PIL import Image
 import numpy as np
+import imagehash
 import requests
 from art import tprint
 import hashlib
@@ -23,21 +25,20 @@ def CheckAllHashes():
 
     hashes = []
     for file in file_list:
-        with open(images_path + file, "rb") as f:
-            hashes.append(hashlib.sha256(f.read()).hexdigest())
+        if not "_NUDE" in file:
+            hashes.append(imagehash.average_hash(Image.open(images_path + file)))
 
     StoreHashes(hashes)
 
 def StoreHashes(hashes):
     with open(hash_file, "a") as f:
         for hash in hashes:
-            f.write(hash + "\n")
+            f.write(str(hash) + "\n")
 
 def GetHash(file):
-    with open(file, "rb") as f:
-        return (hashlib.sha256(f.read()).hexdigest())
+    return imagehash.average_hash(Image.open(file))
 
-def CompareHashes(hash, file_name):
+def CompareHashes(hash):
     # read hashes of other files
     cleaned_hashes = []
     with open(hash_file, "r") as f:
@@ -76,12 +77,16 @@ def FindNewThread():
             id = id.replace('"', "")
             new_url = f"https://boards.4chan.org/b/thread/{id}"
             
-            # check image count in thread
-            img_count = re.search('"i":(.*)', id_index)
-            if int(img_count.group(1).split(",")[0]) >= 145:
-                full_thread = new_url
-            else:
-                new_thread = new_url
+            try:
+                # check image count in thread
+                img_count = re.search('"i":(.*)', id_index)
+                if int(img_count.group(1).split(",")[0]) >= 149:
+                    full_thread = new_url
+                else:
+                    new_thread = new_url
+            except:
+                # url not found
+                pass
     # check which thread to return
     if new_thread == "" and full_thread != "":   
         return full_thread
@@ -204,12 +209,12 @@ def FindReferences(url):
                         
                         path = ref.replace("#p", "")
 
-                        nudify_is_new = CompareHashes(GetHash(path + "_NUDE.jpg"), path + "_NUDE.jpg")
-                        
-                        if nudify_is_new:
-                            # if images are related
-                            similarity = DetectSimilar(ref.replace("#p", ""))
-                            if  similarity >=50:
+                        # if images are related
+                        similarity = DetectSimilar(ref.replace("#p", ""))
+                        if  similarity >=50:
+                            hash = str(GetHash(path + ".jpg"))
+                            is_new = CompareHashes(hash)
+                            if is_new:
                                 shutil.copy(path + ".jpg", f"ImageDatabase\\{path}.jpg")
                                 shutil.copy(path + "_NUDE.jpg", f"ImageDatabase\\{path}_NUDE.jpg")
                                 
@@ -220,10 +225,10 @@ def FindReferences(url):
                                 # print("https:" + img_url) # original
                                 # print("https:" + img) # nudified
                                 # print("-------------------------------------------------")
-                            else:
-                                # print("Removed: " + ref.replace("#p", "") + ".jpg")
-                                # print("-------------------------------------------------")
-                                pass
+                        else:
+                            # print("Removed: " + ref.replace("#p", "") + ".jpg")
+                            # print("-------------------------------------------------")
+                            pass
                         os.remove(ref.replace("#p", "") + ".jpg")
                         os.remove(ref.replace("#p", "") + "_NUDE.jpg")
                     except:
@@ -245,10 +250,11 @@ while True:
     if "!DOCTYPE" in thread_url:
         continue
     print("Accessing thread: " + thread_url)
+    print()
     
     FindReferences(thread_url)
     
-    print("Looped over thread once")
+    print()
     print("Sleeping for 60 seconds")
     print("Program can be safely closed if desired")
     print("---------------------------------------------------------------")
