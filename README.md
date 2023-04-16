@@ -10,4 +10,5 @@ python setup.py
 ```
 
 Planned features:
+- Individual hash file containing references to image name
 - Make code legible for humans
