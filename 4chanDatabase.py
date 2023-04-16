@@ -16,9 +16,6 @@ import cv2
 import os
 import re
 
-tprint("PROGRAM     LOADED")
-print("**DO NOT CLOSE PROGRAM UNTIL TOLD SO**")
-
 def CheckAllHashes():
     file_list = [f for f in listdir(
         images_path) if isfile(join(images_path, f))]
@@ -83,7 +80,7 @@ def FindNewThread():
                 if int(img_count.group(1).split(",")[0]) >= 149:
                     full_thread = new_url
                 else:
-                    new_thread = new_url
+                    return new_url
             except:
                 # url not found
                 pass
@@ -246,6 +243,12 @@ has_URL = False
 open("CheckedURLs.txt", "w")
 
 while True:
+    os.system('cls' if os.name=='nt' else 'clear')
+    
+    tprint("AVERAGE     DEGEN")
+    print("**DO NOT CLOSE PROGRAM UNTIL TOLD SO**")
+    print()
+    
     thread_url = FindNewThread()
     if "!DOCTYPE" in thread_url:
         continue
