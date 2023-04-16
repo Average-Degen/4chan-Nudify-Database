@@ -2,11 +2,11 @@ from skimage.metrics import structural_similarity
 from os.path import isfile, join
 from bs4 import BeautifulSoup
 from os import listdir
+from art import tprint
 from PIL import Image
 import numpy as np
 import imagehash
 import requests
-from art import tprint
 import hashlib
 import string
 import random
