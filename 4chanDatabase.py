@@ -23,19 +23,17 @@ def CheckAllHashes():
     hashes = []
     for file in file_list:
         if not "_NUDE" in file:
-            hashes.append(imagehash.average_hash(Image.open(images_path + file)))
+            StoreHashes(imagehash.average_hash(Image.open(images_path + file)), file.split(".")[0])
 
-    StoreHashes(hashes)
 
-def StoreHashes(hashes):
+def StoreHashes(hash, file_name):
     with open(hash_file, "a") as f:
-        for hash in hashes:
-            f.write(str(hash) + "\n")
+        f.write(str(hash) + ":" + file_name + "\n")
 
 def GetHash(file):
     return imagehash.average_hash(Image.open(file))
 
-def CompareHashes(hash):
+def CompareHashes(hash, name):
     # read hashes of other files
     cleaned_hashes = []
     with open(hash_file, "r") as f:
@@ -44,9 +42,13 @@ def CompareHashes(hash):
             cleaned_hashes.append(h.replace("\n", ""))
 
     # compare the hashes
-    if not hash in cleaned_hashes:
+    hash_found = False
+    for x in cleaned_hashes:
+        if hash in x:
+            hash_found = True
+    if not hash_found:
         # hash doesnt exist in database then add
-        StoreHashes([hash])
+        StoreHashes(hash, name)
         return True
 
 def DownloadImage(url, name):
@@ -210,7 +212,7 @@ def FindReferences(url):
                         similarity = DetectSimilar(ref.replace("#p", ""))
                         if  similarity >=50:
                             hash = str(GetHash(path + ".jpg"))
-                            is_new = CompareHashes(hash)
+                            is_new = CompareHashes(hash, path)
                             if is_new:
                                 shutil.copy(path + ".jpg", f"ImageDatabase\\{path}.jpg")
                                 shutil.copy(path + "_NUDE.jpg", f"ImageDatabase\\{path}_NUDE.jpg")
@@ -226,11 +228,11 @@ def FindReferences(url):
                             # print("Removed: " + ref.replace("#p", "") + ".jpg")
                             # print("-------------------------------------------------")
                             pass
-                        os.remove(ref.replace("#p", "") + ".jpg")
-                        os.remove(ref.replace("#p", "") + "_NUDE.jpg")
                     except:
                         # one of them didnt have an image and I'm lazy
                         pass
+                    os.remove(ref.replace("#p", "") + ".jpg")
+                    os.remove(ref.replace("#p", "") + "_NUDE.jpg")
             except:
                 # the amount of nested loops/error handlers is getting scary now
                 pass
