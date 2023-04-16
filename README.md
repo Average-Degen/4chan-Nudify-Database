@@ -7,6 +7,4 @@ Required files in base dir:
 - "hashes.txt" file
 
 Planned features:
-- CLI/Web interface to search database
 - Make code legible for humans
-- setup.py file
