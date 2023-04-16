@@ -9,7 +9,5 @@ cd 4chan-Nudify-Database
 python setup.py
 ```
 
-python -m setup.py
-
 Planned features:
 - Make code legible for humans
