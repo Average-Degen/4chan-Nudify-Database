@@ -24,8 +24,9 @@ for x in clean_hashes:
         for i in hashes_txt:
             if str(x) in i:
                 full_hash = i
-        file_name = i.split(":")[1].replace("\n", "")
+        file_name = full_hash.split(":")[1].replace("\n", "")
         print("Image found in database")
-        print(file_name + ".jpg")
+        print(x) # image hash
+        print(file_name + ".jpg") # file name
 
     
