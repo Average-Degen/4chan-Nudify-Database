@@ -71,8 +71,7 @@ def AddCheckedURL(url):
 
 # find a thread to pull from
 def FindThread():
-    full_thread = ""
-    new_thread = ""
+    threads = []
 
     source = requests.get("https://boards.4chan.org/b/catalog")
     split_source = source.text.split("},")
@@ -84,27 +83,8 @@ def FindThread():
             id = id_index.split(":")[0]
             id = id.replace('"', "")
             thread_url = f"https://boards.4chan.org/b/thread/{id}"
-
-            try:
-                # check image count in thread
-                img_count = re.search('"i":(.*)', id_index)
-                if int(img_count.group(1).split(",")[0]) >= 149:
-                    full_thread = thread_url
-                else:
-                    new_thread = thread_url
-            except:
-                # url not found
-                pass
-    # check which thread to return
-    if new_thread == "" and full_thread != "":
-        return full_thread
-    elif new_thread != "":
-        return new_thread
-    else:
-        print("No nudify thread found")
-        print("Sleeping for 60 seconds")
-        time.sleep(60)
-        return ""
+            threads.append(thread_url)
+    return threads
     
 
 # check if images are related
@@ -262,13 +242,14 @@ while True:
     print()
 
     # find thread and check if it valid
-    thread_url = FindThread()
-    if "!DOCTYPE" in thread_url or thread_url == "":
-        continue
-    print("Accessing thread: " + thread_url)
-    print()
+    threads = FindThread()
+    for t in threads:
+        if "!DOCTYPE" in t or t == "":
+            continue
+        print()
+        print("Accessing thread: " + t)
 
-    FindPosts(thread_url)
+        FindPosts(t)
 
     print()
     print("Sleeping for 60 seconds")
