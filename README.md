@@ -10,5 +10,4 @@ python setup.py
 ```
 
 Planned features:
-- Scan all nudify threads rather than one
 - Make code legible for humans
