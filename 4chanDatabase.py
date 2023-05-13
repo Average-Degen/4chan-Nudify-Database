@@ -1,19 +1,14 @@
 from skimage.metrics import structural_similarity
-from os.path import isfile, join
 from bs4 import BeautifulSoup
-from os import listdir
 from art import tprint
 from PIL import Image
 import numpy as np
 import imagehash
 import requests
-import string
-import random
 import shutil
 import time
 import cv2
 import os
-import re
 
 # unused function to write hash of all images in database folder
 # def CheckAllHashes():
@@ -96,11 +91,11 @@ def DetectSimilar(file_name):
     # resize to uniform scale
     first = cv2.resize(first, (512, 512))
     second = cv2.resize(second, (512, 512))
-
+    
     # Convert images to grayscale
     first_gray = cv2.cvtColor(first, cv2.COLOR_BGR2GRAY)
     second_gray = cv2.cvtColor(second, cv2.COLOR_BGR2GRAY)
-
+    
     # Compute SSIM between two images
     score, diff = structural_similarity(first_gray, second_gray, full=True)
 
@@ -131,11 +126,10 @@ def DetectSimilar(file_name):
             cv2.drawContours(filled, [c], 0, (0, 255, 0), -1)
 
     # window displaying differences
-    # cv2.imshow('diff', diff)
-    # cv2.waitKey()
-
-    return score*100
-
+    #cv2.imshow('diff', diff)
+    #cv2.waitKey()
+    
+    return score*100 >= 20
 
 # check if URL has been checked previously
 def HasBeenChecked(url):
@@ -199,7 +193,7 @@ def FindPosts(url):
 
                     # if images are related
                     similarity = DetectSimilar(nfy_ref.replace("#p", ""))
-                    if similarity >= 50:
+                    if similarity:
                         hash = str(imagehash.average_hash(Image.open(path + ".jpg")))
                         is_new = IsHashStored(hash, path)
                         if is_new:
@@ -207,7 +201,23 @@ def FindPosts(url):
                                         f"ImageDatabase\\{path}.jpg")
                             shutil.copy(path + "_NUDE.jpg",
                                         f"ImageDatabase\\{path}_NUDE.jpg")
+                            
+                            os.remove(nfy_ref.replace("#p", "") + ".jpg")
+                            os.remove(nfy_ref.replace("#p", "") + "_NUDE.jpg")
 
+                            # find and store user that nudified unless anon
+                            try:
+                                name = post.find("span", class_="name").text
+                                
+                                if not os.path.exists("NudifierList.txt"):
+                                    open("NudifierList.txt", "w")
+                                    
+                                with open("NudifierList.txt", "a") as f:
+                                    f.write(path + ":" + name + "\n")
+                            except Exception as err:
+                                print("Poster not found!")
+                                pass
+                            
                             print("Image pair added to database!")
 
                             # print(similarity)
@@ -233,27 +243,28 @@ hash_file = "hashes.txt"
 
 open("CheckedURLs.txt", "w")
 
-while True:
-    # clear output
-    os.system('cls' if os.name == 'nt' else 'clear')
+if __name__ == "__main__":    
+    while True:
+        # clear output
+        os.system('cls' if os.name == 'nt' else 'clear')
 
-    tprint("AVERAGE     DEGEN")
-    print("**DO NOT CLOSE PROGRAM UNTIL TOLD SO**")
-    print()
-
-    # find thread and check if it valid
-    threads = FindThread()
-    for t in threads:
-        if "!DOCTYPE" in t or t == "":
-            continue
+        tprint("AVERAGE     DEGEN")
+        print("**DO NOT CLOSE PROGRAM UNTIL TOLD SO**")
         print()
-        print("Accessing thread: " + t)
 
-        FindPosts(t)
+        # find thread and check if it valid
+        threads = FindThread()
+        for t in threads:
+            if "!DOCTYPE" in t or t == "":
+                continue
+            print()
+            print("Accessing thread: " + t)
 
-    print()
-    print("Sleeping for 60 seconds")
-    print("Program can be safely closed if desired")
-    print("---------------------------------------------------------------")
-    time.sleep(60)
+            FindPosts(t)
+
+        print()
+        print("Sleeping for 60 seconds")
+        print("Program can be safely closed if desired")
+        print("---------------------------------------------------------------")
+        time.sleep(60)
 
