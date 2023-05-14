@@ -129,8 +129,8 @@ def DetectSimilar(file_name):
     #cv2.imshow('diff', diff)
     #cv2.waitKey()
     
-    return score*100 >= 20
-
+    return score*100 >= 35
+ 
 # check if URL has been checked previously
 def HasBeenChecked(url):
     prev_urls = []
@@ -148,15 +148,14 @@ def FindPosts(url):
     # get posts in thread
     posts = soup.find_all("div", class_="post")
     for post in posts:
-
         # find if post is a reply
-        quote = post.find("blockquote")
+        quote = post.find("blockquote", class_="postMessage")
         try:
-            nfy_ref = quote.find("a")["href"]
+            nfy_ref = quote.find("a", class_="quotelink")["href"]
         except:
             continue
 
-        # find if reply contains images
+        # find if post contains image
         try:
             nfy_img = post.find("a", class_="fileThumb")["href"]
         except:
@@ -214,7 +213,7 @@ def FindPosts(url):
                                     
                                 with open("NudifierList.txt", "a") as f:
                                     f.write(path + ":" + name + "\n")
-                            except Exception as err:
+                            except:
                                 print("Poster not found!")
                                 pass
                             
@@ -263,8 +262,8 @@ if __name__ == "__main__":
             FindPosts(t)
 
         print()
-        print("Sleeping for 60 seconds")
+        print("Sleeping for 30 seconds")
         print("Program can be safely closed if desired")
         print("---------------------------------------------------------------")
-        time.sleep(60)
+        time.sleep(30)
 
