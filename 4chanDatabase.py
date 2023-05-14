@@ -85,51 +85,64 @@ def FindThread():
 # check if images are related
 # credit nathancy & bfontaine - stackoverflow
 def DetectSimilar(file_name):
-    first = cv2.imread(f'{file_name}.jpg')
-    second = cv2.imread(f'{file_name}_NUDE.jpg')
+    for test_num in range(2):
+        first = cv2.imread(f'{file_name}.jpg')
+        second = cv2.imread(f'{file_name}_NUDE.jpg')
 
-    # resize to uniform scale
-    first = cv2.resize(first, (512, 512))
-    second = cv2.resize(second, (512, 512))
-    
-    # Convert images to grayscale
-    first_gray = cv2.cvtColor(first, cv2.COLOR_BGR2GRAY)
-    second_gray = cv2.cvtColor(second, cv2.COLOR_BGR2GRAY)
-    
-    # Compute SSIM between two images
-    score, diff = structural_similarity(first_gray, second_gray, full=True)
+        # resize to uniform scale
+        first = cv2.resize(first, (512, 512))
+        second = cv2.resize(second, (512, 512))
+        
+        h1, w1 = first.shape[:2]
+        
+        if test_num == 1:
+            # divide the images into segments of 50x50 pixels
+            segments1 = []
+            segments2 = []
+            for r in range(0, h1, 64):
+                for c in range(0, w1, 64):
+                    # crop the segments from the images
+                    segment1 = first[c:c+64, r:r+64]
+                    segment2 = second[c:c+64, r:r+64]
+                    # append the segments to the lists
+                    segments1.append(segment1)
+                    segments2.append(segment2) 
+            
+            loop_num = range(len(segments1))
+        else:
+            loop_num = 1
+            
+        for x in range(loop_num):
+            # convert images to grayscale
+            if test_num == 1:
+                first_gray = cv2.cvtColor(segments1[x], cv2.COLOR_BGR2GRAY)
+                second_gray = cv2.cvtColor(segments2[x], cv2.COLOR_BGR2GRAY)
+            else:
+                first_gray = cv2.cvtColor(first, cv2.COLOR_BGR2GRAY)
+                second_gray = cv2.cvtColor(second, cv2.COLOR_BGR2GRAY)
+            # Compute SSIM between two images
+            score, diff = structural_similarity(first_gray, second_gray, full=True)
 
-    # The diff image contains the actual image differences between the two images
-    # and is represented as a floating point data type so we must convert the array
-    # to 8-bit unsigned integers in the range [0,255] before we can use it with OpenCV
-    diff = (diff * 255).astype("uint8")
+            # The diff image contains the actual image differences between the two images
+            # and is represented as a floating point data type so we must convert the array
+            # to 8-bit unsigned integers in the range [0,255] before we can use it with OpenCV
+            diff = (diff * 255).astype("uint8")
 
-    # Threshold the difference image, followed by finding contours to
-    # obtain the regions that differ between the two images
-    thresh = cv2.threshold(
-        diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-    contours = cv2.findContours(
-        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = contours[0] if len(contours) == 2 else contours[1]
-
-    # Highlight differences
-    mask = np.zeros(first.shape, dtype='uint8')
-    filled = second.copy()
-
-    for c in contours:
-        area = cv2.contourArea(c)
-        if area > 100:
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(first, (x, y), (x + w, y + h), (36, 255, 12), 2)
-            cv2.rectangle(second, (x, y), (x + w, y + h), (36, 255, 12), 2)
-            cv2.drawContours(mask, [c], 0, (0, 255, 0), -1)
-            cv2.drawContours(filled, [c], 0, (0, 255, 0), -1)
-
-    # window displaying differences
-    #cv2.imshow('diff', diff)
-    #cv2.waitKey()
-    
-    return score*100 >= 35
+            # Threshold the difference image, followed by finding contours to
+            # obtain the regions that differ between the two images
+            thresh = cv2.threshold(
+                diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+            contours = cv2.findContours(
+                thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours = contours[0] if len(contours) == 2 else contours[1]
+            
+            if test_num == 1:
+                if score*100 >= 98:
+                    return True
+            else:
+                if score*100 >= 40:
+                    return True
+    return False
  
 # check if URL has been checked previously
 def HasBeenChecked(url):
@@ -171,10 +184,9 @@ def FindPosts(url):
                 continue
 
         try:
-            url1_checked = HasBeenChecked("https:" + orig_img)
-            url2_checked = HasBeenChecked("https:" + nfy_img)
+            nfy_checked = HasBeenChecked("https:" + nfy_img)
 
-            if not url1_checked and not url2_checked:
+            if not nfy_checked:
                 try:
                     # download requested image
                     DownloadImage(
@@ -218,15 +230,16 @@ def FindPosts(url):
                                 pass
                             
                             print("Image pair added to database!")
-
-                            # print(similarity)
-                            # print(ref.replace("#p", ""))
-                            # print("https:" + img_url) # original
-                            # print("https:" + img) # nudified
-                            # print("-------------------------------------------------")
+                        else:
+                            # save the repost for image feed
+                            shutil.copy(path + ".jpg",
+                                        f"ImageDatabase\\{path}.jpg")
+                            shutil.copy(path + "_NUDE.jpg",
+                                        f"ImageDatabase\\{path}_NUDE.jpg")
+                            
+                            os.remove(nfy_ref.replace("#p", "") + ".jpg")
+                            os.remove(nfy_ref.replace("#p", "") + "_NUDE.jpg")
                     else:
-                        # print("Removed: " + ref.replace("#p", "") + ".jpg")
-                        # print("-------------------------------------------------")
                         pass
                 except:
                     # one of them didnt have an image and I'm lazy
@@ -266,4 +279,3 @@ if __name__ == "__main__":
         print("Program can be safely closed if desired")
         print("---------------------------------------------------------------")
         time.sleep(30)
-
